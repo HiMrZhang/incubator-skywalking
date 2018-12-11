@@ -63,6 +63,10 @@ public class SnifferConfigInitializer {
             configFileStream = loadConfig();
             Properties properties = new Properties();
             properties.load(configFileStream);
+            String applicationCode = System.getProperty("agent.application_code");
+            if (!StringUtil.isEmpty(applicationCode)) {
+                properties.setProperty("agent.application_code",applicationCode);
+            }
             ConfigInitializer.initialize(properties, Config.class);
         } catch (Exception e) {
             logger.error(e, "Failed to read the config file, skywalking is going to run in default config.");
