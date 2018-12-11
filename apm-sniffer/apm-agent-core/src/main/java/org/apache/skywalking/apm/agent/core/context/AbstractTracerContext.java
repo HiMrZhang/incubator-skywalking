@@ -105,4 +105,8 @@ public interface AbstractTracerContext {
      */
     void stopSpan(AbstractSpan span);
 
+    /*ext*/
+    String getCurrentId();
+
+    String getParentId();
 }

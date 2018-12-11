@@ -170,4 +170,8 @@ public class Config {
             public static boolean TRACE_DSL = false;
         }
     }
+    /*ext*/
+    public static class Toolkit {
+        public static String LOGBACK_MDC_TRACEID = "apmTraceId";
+    }
 }

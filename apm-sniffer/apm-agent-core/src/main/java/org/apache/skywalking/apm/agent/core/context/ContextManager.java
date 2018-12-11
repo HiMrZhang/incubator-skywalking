@@ -83,7 +83,7 @@ public class ContextManager implements TracingContextListener, BootService, Igno
     public static String getGlobalTraceId() {
         AbstractTracerContext segment = CONTEXT.get();
         if (segment == null) {
-            return "N/A";
+            return "NA";
         } else {
             return segment.getReadableGlobalTraceId();
         }
@@ -206,5 +206,27 @@ public class ContextManager implements TracingContextListener, BootService, Igno
         }
 
         return runtimeContext;
+    }
+    /*ext*/
+    public static String getCurrentId() {
+        AbstractTracerContext segment = CONTEXT.get();
+        if (segment != null) {
+            String currentId = segment.getCurrentId();
+            if (currentId != null) {
+                return currentId;
+            }
+        }
+        return "NA";
+    }
+
+    public static String getParentId() {
+        AbstractTracerContext segment = CONTEXT.get();
+        if (segment != null) {
+            String parentId = segment.getParentId();
+            if (parentId != null) {
+                return parentId;
+            }
+        }
+        return "NA";
     }
 }

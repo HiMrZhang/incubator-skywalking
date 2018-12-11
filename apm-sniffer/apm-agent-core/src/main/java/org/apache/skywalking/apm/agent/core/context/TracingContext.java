@@ -38,6 +38,9 @@ import org.apache.skywalking.apm.agent.core.dictionary.PossibleFound;
 import org.apache.skywalking.apm.agent.core.logging.api.ILog;
 import org.apache.skywalking.apm.agent.core.logging.api.LogManager;
 import org.apache.skywalking.apm.agent.core.sampling.SamplingService;
+import org.apache.skywalking.apm.network.proto.SpanObject;
+import org.apache.skywalking.apm.network.proto.TraceSegmentReference;
+import org.apache.skywalking.apm.network.proto.UniqueId;
 
 /**
  * The <code>TracingContext</code> represents a core tracing logic controller. It build the final {@link
@@ -520,5 +523,33 @@ public class TracingContext implements AbstractTracerContext {
         } else {
             return false;
         }
+    }
+    /*ext*/
+    @Override
+    public String getCurrentId() {
+        return segment.getTraceSegmentId() + "S" + peek().getSpanId();
+    }
+
+    @Override
+    public String getParentId() {
+        String segmentParentSpanId = null;
+        if (peek() instanceof AbstractTracingSpan) {
+            SpanObject.Builder spanBuilder = ((AbstractTracingSpan)peek()).transform();
+            segmentParentSpanId = segment.getTraceSegmentId() + "S" + spanBuilder.getParentSpanId();
+            for (TraceSegmentReference reference: spanBuilder.getRefsList()) {
+                Integer refParentSpanId = reference.getParentSpanId();
+                UniqueId uniqueId = reference.getParentTraceSegmentId();
+                StringBuilder segmentIdBuilder = new StringBuilder();
+                for (int i = 0; i < uniqueId.getIdPartsList().size(); i++) {
+                    if (i == 0) {
+                        segmentIdBuilder.append(String.valueOf(uniqueId.getIdPartsList().get(i)));
+                    } else {
+                        segmentIdBuilder.append(".").append(String.valueOf(uniqueId.getIdPartsList().get(i)));
+                    }
+                }
+                segmentParentSpanId = segmentIdBuilder.toString() + "S" + String.valueOf(refParentSpanId);
+            }
+        }
+        return segmentParentSpanId;
     }
 }

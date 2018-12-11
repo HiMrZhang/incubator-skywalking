@@ -127,4 +127,15 @@ public class IgnoredTracerContext implements AbstractTracerContext {
             LISTENERS.remove(listener);
         }
     }
+     /*ext*/
+
+    @Override
+    public String getCurrentId() {
+        return null;
+    }
+
+    @Override
+    public String getParentId() {
+        return null;
+    }
 }
