@@ -33,6 +33,8 @@ import org.apache.skywalking.apm.collector.storage.shardingjdbc.base.dao.Shardin
 import org.apache.skywalking.apm.collector.storage.table.MetricSource;
 import org.apache.skywalking.apm.collector.storage.table.service.ServiceReferenceMetricTable;
 import org.apache.skywalking.apm.collector.storage.ui.common.Step;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricBrief;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricQueryOrder;
 import org.apache.skywalking.apm.collector.storage.utils.TimePyramidTableNameBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ import org.slf4j.LoggerFactory;
  * @author linjiaqi
  */
 public class ServiceReferenceShardingjdbcMetricUIDAO extends ShardingjdbcDAO implements IServiceReferenceMetricUIDAO {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ServiceReferenceShardingjdbcMetricUIDAO.class);
     private static final String SERVICE_REFERENCE_FRONT_SQL = "select {0}, sum({1}) as {1}, sum({2}) as {2}, sum({3}) as {3}, sum({4}) as {4} from {5} where {6} >= ? and {6} <= ? and {7} = ? and {8} = ? group by {0} limit 100";
     private static final String SERVICE_REFERENCE_BEHIND_SQL = "select {0}, sum({1}) as {1}, sum({2}) as {2}, sum({3}) as {3}, sum({4}) as {4} from {5} where {6} >= ? and {6} <= ? and {7} = ? and {8} = ? group by {8} limit 100";
@@ -54,16 +56,16 @@ public class ServiceReferenceShardingjdbcMetricUIDAO extends ShardingjdbcDAO imp
         MetricSource metricSource,
         int behindServiceId) {
         ShardingjdbcClient client = getClient();
-        
+
         String tableName = TimePyramidTableNameBuilder.build(step, ServiceReferenceMetricTable.TABLE);
-        
+
         List<ServiceReferenceMetric> referenceMetrics = new LinkedList<>();
-        String sql = SqlBuilder.buildSql(SERVICE_REFERENCE_FRONT_SQL, ServiceReferenceMetricTable.FRONT_SERVICE_ID.getName(), 
-                ServiceReferenceMetricTable.TRANSACTION_CALLS.getName(), ServiceReferenceMetricTable.TRANSACTION_ERROR_CALLS.getName(), 
-                ServiceReferenceMetricTable.TRANSACTION_DURATION_SUM.getName(), ServiceReferenceMetricTable.TRANSACTION_ERROR_DURATION_SUM.getName(), 
-                tableName, ServiceReferenceMetricTable.TIME_BUCKET.getName(), ServiceReferenceMetricTable.SOURCE_VALUE.getName(), 
+        String sql = SqlBuilder.buildSql(SERVICE_REFERENCE_FRONT_SQL, ServiceReferenceMetricTable.FRONT_SERVICE_ID.getName(),
+                ServiceReferenceMetricTable.TRANSACTION_CALLS.getName(), ServiceReferenceMetricTable.TRANSACTION_ERROR_CALLS.getName(),
+                ServiceReferenceMetricTable.TRANSACTION_DURATION_SUM.getName(), ServiceReferenceMetricTable.TRANSACTION_ERROR_DURATION_SUM.getName(),
+                tableName, ServiceReferenceMetricTable.TIME_BUCKET.getName(), ServiceReferenceMetricTable.SOURCE_VALUE.getName(),
                 ServiceReferenceMetricTable.BEHIND_SERVICE_ID.getName());
-        
+
         Object[] params = new Object[] {startTimeBucket, endTimeBucket, metricSource.getValue(), behindServiceId};
         try (
                 ResultSet rs = client.executeQuery(sql, params);
@@ -89,7 +91,7 @@ public class ServiceReferenceShardingjdbcMetricUIDAO extends ShardingjdbcDAO imp
         } catch (SQLException | ShardingjdbcClientException e) {
             logger.error(e.getMessage(), e);
         }
-        
+
         return referenceMetrics;
     }
 
@@ -97,16 +99,16 @@ public class ServiceReferenceShardingjdbcMetricUIDAO extends ShardingjdbcDAO imp
         MetricSource metricSource,
         int frontServiceId) {
         ShardingjdbcClient client = getClient();
-        
+
         String tableName = TimePyramidTableNameBuilder.build(step, ServiceReferenceMetricTable.TABLE);
-        
+
         List<ServiceReferenceMetric> referenceMetrics = new LinkedList<>();
-        String sql = SqlBuilder.buildSql(SERVICE_REFERENCE_BEHIND_SQL, ServiceReferenceMetricTable.BEHIND_SERVICE_ID.getName(), 
-                ServiceReferenceMetricTable.TRANSACTION_CALLS.getName(), ServiceReferenceMetricTable.TRANSACTION_ERROR_CALLS.getName(), 
-                ServiceReferenceMetricTable.TRANSACTION_DURATION_SUM.getName(), ServiceReferenceMetricTable.TRANSACTION_ERROR_DURATION_SUM.getName(), 
-                tableName, ServiceReferenceMetricTable.TIME_BUCKET.getName(), ServiceReferenceMetricTable.SOURCE_VALUE.getName(), 
+        String sql = SqlBuilder.buildSql(SERVICE_REFERENCE_BEHIND_SQL, ServiceReferenceMetricTable.BEHIND_SERVICE_ID.getName(),
+                ServiceReferenceMetricTable.TRANSACTION_CALLS.getName(), ServiceReferenceMetricTable.TRANSACTION_ERROR_CALLS.getName(),
+                ServiceReferenceMetricTable.TRANSACTION_DURATION_SUM.getName(), ServiceReferenceMetricTable.TRANSACTION_ERROR_DURATION_SUM.getName(),
+                tableName, ServiceReferenceMetricTable.TIME_BUCKET.getName(), ServiceReferenceMetricTable.SOURCE_VALUE.getName(),
                 ServiceReferenceMetricTable.FRONT_SERVICE_ID.getName());
-        
+
         Object[] params = new Object[] {startTimeBucket, endTimeBucket, metricSource.getValue(), frontServiceId};
         try (
                 ResultSet rs = client.executeQuery(sql, params);
@@ -132,7 +134,13 @@ public class ServiceReferenceShardingjdbcMetricUIDAO extends ShardingjdbcDAO imp
         } catch (SQLException | ShardingjdbcClientException e) {
             logger.error(e.getMessage(), e);
         }
-        
+
         return referenceMetrics;
     }
+
+    @Override
+    public ServiceReferenceMetricBrief getServiceReferenceMetricBrief(Step step, long startSecondTimeBucket, long endSecondTimeBucket, long minDuration, long maxDuration, MetricSource metricSource, int frontApplicationId, int behindApplicationId, int limit, int from, ServiceReferenceMetricQueryOrder queryOrder) {
+        return null;
+    }
+
 }

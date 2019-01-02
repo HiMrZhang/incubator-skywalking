@@ -22,7 +22,9 @@ import java.util.List;
 import org.apache.skywalking.apm.collector.storage.base.dao.DAO;
 import org.apache.skywalking.apm.collector.storage.table.MetricSource;
 import org.apache.skywalking.apm.collector.storage.ui.common.Step;
-
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceInfo;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricBrief;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricQueryOrder;
 /**
  * Interface to be implemented for execute database query operation
  * from {@link org.apache.skywalking.apm.collector.storage.table.service.ServiceReferenceMetricTable#TABLE}.
@@ -83,13 +85,24 @@ public interface IServiceReferenceMetricUIDAO extends DAO {
     List<ServiceReferenceMetric> getBehindServices(Step step, long startTimeBucket, long endTimeBucket,
         MetricSource metricSource, int frontServiceId);
 
+    ServiceReferenceMetricBrief getServiceReferenceMetricBrief(Step step, long startSecondTimeBucket, long endSecondTimeBucket, long minDuration, long maxDuration, MetricSource metricSource, int frontApplicationId, int behindApplicationId, int limit, int from, ServiceReferenceMetricQueryOrder queryOrder);
+
     class ServiceReferenceMetric {
+        private String id;
+        private ServiceInfo behindServiceInfo;
+        private ServiceInfo frontServiceInfo;
         private int source;
         private int target;
         private long calls;
         private long errorCalls;
         private long durations;
         private long errorDurations;
+        private long averageDuration;
+
+        public ServiceReferenceMetric() {
+            this.behindServiceInfo = new ServiceInfo();
+            this.frontServiceInfo = new ServiceInfo();
+        }
 
         public int getSource() {
             return source;
@@ -137,6 +150,38 @@ public interface IServiceReferenceMetricUIDAO extends DAO {
 
         public void setErrorDurations(long errorDurations) {
             this.errorDurations = errorDurations;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public ServiceInfo getBehindServiceInfo() {
+            return behindServiceInfo;
+        }
+
+        public void setBehindServiceInfo(ServiceInfo behindServiceInfo) {
+            this.behindServiceInfo = behindServiceInfo;
+        }
+
+        public ServiceInfo getFrontServiceInfo() {
+            return frontServiceInfo;
+        }
+
+        public void setFrontServiceInfo(ServiceInfo frontServiceInfo) {
+            this.frontServiceInfo = frontServiceInfo;
+        }
+
+        public long getAverageDuration() {
+            return averageDuration;
+        }
+
+        public void setAverageDuration(long averageDuration) {
+            this.averageDuration = averageDuration;
         }
     }
 }

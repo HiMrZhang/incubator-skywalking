@@ -36,6 +36,12 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricBrief;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricQueryOrder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortOrder;
 
 /**
  * @author peng-yongsheng
@@ -153,4 +159,72 @@ public class ServiceReferenceEsMetricUIDAO extends EsDAO implements IServiceRefe
             referenceMetrics.add(referenceMetric);
         });
     }
+
+    @Override
+    public ServiceReferenceMetricBrief getServiceReferenceMetricBrief(Step step, long startSecondTimeBucket, long endSecondTimeBucket, long minDuration, long maxDuration, MetricSource metricSource, int frontApplicationId, int behindApplicationId, int limit, int from, ServiceReferenceMetricQueryOrder queryOrder) {
+        String tableName = TimePyramidTableNameBuilder.build(step, ServiceReferenceMetricTable.TABLE);
+        SearchRequestBuilder searchRequestBuilder = getClient().prepareSearch(tableName);
+        searchRequestBuilder.setTypes(ServiceReferenceMetricTable.TABLE_TYPE);
+        searchRequestBuilder.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        searchRequestBuilder.setQuery(boolQueryBuilder);
+        List<QueryBuilder> mustQueryList = boolQueryBuilder.must();
+
+        if (startSecondTimeBucket != 0 && endSecondTimeBucket != 0) {
+            mustQueryList.add(QueryBuilders.rangeQuery(ServiceReferenceMetricTable.TIME_BUCKET.getName()).gte(startSecondTimeBucket).lte(endSecondTimeBucket));
+        }
+
+        if (minDuration != 0 || maxDuration != 0) {
+            RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(ServiceReferenceMetricTable.TRANSACTION_AVERAGE_DURATION.getName());
+            if (minDuration != 0) {
+                rangeQueryBuilder.gte(minDuration);
+            }
+            if (maxDuration != 0) {
+                rangeQueryBuilder.lte(maxDuration);
+            }
+            boolQueryBuilder.must().add(rangeQueryBuilder);
+        }
+        if (behindApplicationId != 0) {
+            boolQueryBuilder.must().add(QueryBuilders.termQuery(ServiceReferenceMetricTable.BEHIND_APPLICATION_ID.getName(), behindApplicationId));
+        }
+        if (frontApplicationId != 0) {
+            boolQueryBuilder.must().add(QueryBuilders.termQuery(ServiceReferenceMetricTable.FRONT_APPLICATION_ID.getName(), frontApplicationId));
+        }
+        boolQueryBuilder.must().add(QueryBuilders.termQuery(ServiceReferenceMetricTable.SOURCE_VALUE.getName(), metricSource.getValue()));
+        switch (queryOrder) {
+            case BY_TIME_BUCKET:
+                searchRequestBuilder.addSort(ServiceReferenceMetricTable.TIME_BUCKET.getName(), SortOrder.DESC);
+                break;
+            case BY_TRANSACTION_AVERAGE_DURATION:
+                searchRequestBuilder.addSort(ServiceReferenceMetricTable.TRANSACTION_AVERAGE_DURATION.getName(), SortOrder.DESC);
+                break;
+            case BY_TRANSACTION_CALLS:
+                searchRequestBuilder.addSort(ServiceReferenceMetricTable.TRANSACTION_CALLS.getName(), SortOrder.DESC);
+                break;
+            case BY_TRANSACTION_ERROR_CALLS:
+                searchRequestBuilder.addSort(ServiceReferenceMetricTable.TRANSACTION_ERROR_CALLS.getName(), SortOrder.DESC);
+                break;
+        }
+        searchRequestBuilder.setSize(limit);
+        searchRequestBuilder.setFrom(from);
+
+        SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
+
+        ServiceReferenceMetricBrief serviceReferenceMetricBrief = new ServiceReferenceMetricBrief();
+        serviceReferenceMetricBrief.setTotal((int) searchResponse.getHits().totalHits);
+
+        for (SearchHit searchHit : searchResponse.getHits().getHits()) {
+            ServiceReferenceMetric serviceReferenceMetric = new ServiceReferenceMetric();
+            serviceReferenceMetric.setId(((Number) searchHit.getSource().get(ServiceReferenceMetricTable.TIME_BUCKET.getName())).longValue() + "_" + searchHit.getSource().get(ServiceReferenceMetricTable.METRIC_ID.getName()).toString());
+            serviceReferenceMetric.setAverageDuration(((Number) searchHit.getSource().get(ServiceReferenceMetricTable.TRANSACTION_AVERAGE_DURATION.getName())).intValue());
+            serviceReferenceMetric.setCalls(((Number) searchHit.getSource().get(ServiceReferenceMetricTable.TRANSACTION_CALLS.getName())).longValue());
+            serviceReferenceMetric.setErrorCalls(((Number) searchHit.getSource().get(ServiceReferenceMetricTable.TRANSACTION_ERROR_CALLS.getName())).longValue());
+            serviceReferenceMetric.getBehindServiceInfo().setId(((Number) searchHit.getSource().get(ServiceReferenceMetricTable.BEHIND_SERVICE_ID.getName())).intValue());
+            serviceReferenceMetric.getFrontServiceInfo().setId(((Number) searchHit.getSource().get(ServiceReferenceMetricTable.FRONT_SERVICE_ID.getName())).intValue());
+            serviceReferenceMetricBrief.getServiceReferenceMetrics().add(serviceReferenceMetric);
+        }
+
+        return serviceReferenceMetricBrief;
+    }
+
 }

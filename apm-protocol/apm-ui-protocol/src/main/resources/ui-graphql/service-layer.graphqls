@@ -47,10 +47,46 @@ type TraceItem {
     duration: Int!
 }
 
+type ServiceReferenceMetric {
+   id: String!
+   behindServiceInfo: ServiceInfo!
+   frontServiceInfo: ServiceInfo!
+   calls: Long!
+   errorCalls: Long!
+   averageDuration: Int!
+}
+
+type ServiceReferenceMetricBrief {
+  serviceReferenceMetrics: [ServiceReferenceMetric!]!
+  total: Int!
+}
+
+enum ServiceReferenceMetricQueryOrder {
+  BY_TIME_BUCKET
+   BY_TRANSACTION_AVERAGE_DURATION
+   BY_TRANSACTION_CALLS
+   BY_TRANSACTION_ERROR_CALLS
+}
+
+input ServiceReferenceMetricQueryCondition {
+  # The value of 0 means all application.
+  frontApplicationId: Int
+  behindApplicationId: Int
+  # The time range of traces started
+  queryDuration: Duration
+  # The mix time of trace
+  minTransactionAverageDuration: Int
+  # The max time of trace
+  maxTransactionAverageDuration: Int
+  queryOrder: ServiceReferenceMetricQueryOrder!
+  paging: Pagination!
+}
+
 extend type Query {
     searchService(keyword: String!, applicationId: ID!, topN: Int!): [ServiceInfo!]!
     getServiceResponseTimeTrend(serviceId: ID!, duration: Duration!): ResponseTimeTrend
     getServiceThroughputTrend(serviceId: ID!, duration: Duration!): ThroughputTrend
     getServiceSLATrend(serviceId: ID!, duration: Duration!): SLATrend
     getServiceTopology(serviceId: ID!, duration: Duration!): Topology
+    queryServiceReferenceMetricBrief(condition: ServiceReferenceMetricQueryCondition): ServiceReferenceMetricBrief
 }

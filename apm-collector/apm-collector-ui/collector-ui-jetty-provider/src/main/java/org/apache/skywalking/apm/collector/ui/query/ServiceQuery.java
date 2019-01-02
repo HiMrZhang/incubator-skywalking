@@ -28,6 +28,13 @@ import org.apache.skywalking.apm.collector.ui.service.*;
 import org.apache.skywalking.apm.collector.ui.utils.DurationUtils;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import org.apache.skywalking.apm.collector.core.UnexpectedException;
+import org.apache.skywalking.apm.collector.ui.utils.PaginationUtils;
+import org.apache.skywalking.apm.collector.storage.table.MetricSource;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricBrief;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricQueryCondition;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricQueryOrder;
 
 /**
  * @author peng-yongsheng
@@ -37,6 +44,7 @@ public class ServiceQuery implements Query {
     private final ModuleManager moduleManager;
     private ServiceNameService serviceNameService;
     private ServiceTopologyService serviceTopologyService;
+    private ServiceReferenceMetricService serviceReferenceMetricService;
 
     public ServiceQuery(ModuleManager moduleManager) {
         this.moduleManager = moduleManager;
@@ -54,6 +62,13 @@ public class ServiceQuery implements Query {
             this.serviceTopologyService = new ServiceTopologyService(moduleManager);
         }
         return serviceTopologyService;
+    }
+
+    private ServiceReferenceMetricService getServiceReferenceMetricService() {
+        if (isNull(serviceReferenceMetricService)) {
+            this.serviceReferenceMetricService = new ServiceReferenceMetricService(moduleManager);
+        }
+        return serviceReferenceMetricService;
     }
 
     public List<ServiceInfo> searchService(String keyword, int applicationId, int topN) {
@@ -88,4 +103,25 @@ public class ServiceQuery implements Query {
 
         return getServiceTopologyService().getServiceTopology(duration.getStep(), serviceId, startTimeBucket, endTimeBucket, startSecondTimeBucket, endSecondTimeBucket);
     }
+
+    public ServiceReferenceMetricBrief queryServiceReferenceMetricBrief(ServiceReferenceMetricQueryCondition condition) {
+        long startSecondTimeBucket = 0;
+        long endSecondTimeBucket = 0;
+        if (nonNull(condition.getQueryDuration())) {
+            startSecondTimeBucket = DurationUtils.INSTANCE.exchangeToTimeBucket(condition.getQueryDuration().getStart());
+            endSecondTimeBucket = DurationUtils.INSTANCE.exchangeToTimeBucket(condition.getQueryDuration().getEnd());
+        } else {
+            throw new UnexpectedException("The condition must contains queryDuration.");
+        }
+
+        long minDuration = condition.getMinTransactionAverageDuration();
+        long maxDuration = condition.getMaxTransactionAverageDuration();
+        int behindApplicationId = condition.getBehindApplicationId();
+        int frontApplicationId = condition.getFrontApplicationId();
+        ServiceReferenceMetricQueryOrder queryOrder = condition.getQueryOrder();
+
+        PaginationUtils.Page page = PaginationUtils.INSTANCE.exchange(condition.getPaging());
+        return getServiceReferenceMetricService().getServiceReferenceMetricBrief(condition.getQueryDuration().getStep(), startSecondTimeBucket, endSecondTimeBucket, minDuration, maxDuration, MetricSource.Callee, frontApplicationId, behindApplicationId, page.getLimit(), page.getFrom(), queryOrder);
+    }
+
 }

@@ -24,6 +24,8 @@ import org.apache.skywalking.apm.collector.storage.dao.ui.IServiceReferenceMetri
 import org.apache.skywalking.apm.collector.storage.h2.base.dao.H2DAO;
 import org.apache.skywalking.apm.collector.storage.table.MetricSource;
 import org.apache.skywalking.apm.collector.storage.ui.common.Step;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricBrief;
+import org.apache.skywalking.apm.collector.storage.ui.service.ServiceReferenceMetricQueryOrder;
 
 /**
  * @author peng-yongsheng
@@ -43,6 +45,11 @@ public class ServiceReferenceH2MetricUIDAO extends H2DAO implements IServiceRefe
     @Override public List<ServiceReferenceMetric> getBehindServices(Step step, long startTimeBucket, long endTimeBucket,
         MetricSource metricSource,
         int frontServiceId) {
+        return null;
+    }
+
+    @Override
+    public ServiceReferenceMetricBrief getServiceReferenceMetricBrief(Step step, long startSecondTimeBucket, long endSecondTimeBucket, long minDuration, long maxDuration, MetricSource metricSource, int frontApplicationId, int behindApplicationId, int limit, int from, ServiceReferenceMetricQueryOrder queryOrder) {
         return null;
     }
 }
