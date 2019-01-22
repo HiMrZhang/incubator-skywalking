@@ -13,7 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+spring:
+  application:
+    name: apm-webapp
 server:
   port: 8080
 zuul:
@@ -26,10 +28,27 @@ zuul:
 collector:
   path: /graphql
   ribbon:
-    listOfServers: 127.0.0.1:10800
-    NIWSServerListClassName: org.apache.skywalking.apm.webapp.proxy.CollectorServerList
+    listOfServers: 127.0.0.1:12800
+    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
 
-security:
+
+
+eureka:
   user:
-    admin:
-      password: admin
+    name: admin
+    password: 123456
+  peer1: 127.0.0.1:8761
+  instance:
+    prefer-ip-address: true #
+    instance-id: ${spring.cloud.client.ipAddress}:${server.port}
+
+  client:
+    register-with-eureka: true # 自己注册到注册中心
+    serviceUrl:
+      defaultZone: http://${eureka.user.name}:${eureka.user.password}@${eureka.peer1}/eureka/
+
+
+suixingpay:
+  portal: # 统一门户相关配置
+    exclude-path-patterns:
+      - /public/**

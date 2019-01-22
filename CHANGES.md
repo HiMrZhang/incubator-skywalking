@@ -2,7 +2,7 @@ Changes by Version
 ==================
 Release Notes.
 
-5.0.0-GA
+5.0.0-httpshop
 ------------------
 
 #### Agent Changes

@@ -18,17 +18,22 @@
 
 package org.apache.skywalking.apm.webapp;
 
+import com.suixingpay.portal.authorization.config.AuthInterceptorConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {AuthInterceptorConfiguration.class})
 @EnableZuulProxy
+@EnableDiscoveryClient
+@EnableFeignClients
 public class ApplicationStartUp extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(ApplicationStartUp.class, args);
     }
-    
+
 }

@@ -21,7 +21,7 @@ collector:
   path: /graphql
   ribbon:
     ReadTimeout: 10000
-    listOfServers: 127.0.0.1:10800
+    listOfServers: collector:12800
 
 security:
   user:
