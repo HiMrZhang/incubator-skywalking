@@ -71,7 +71,7 @@ ui:
 storage:
   elasticsearch:
     clusterName: docker-cluster
-    clusterTransportSniffer: true
+    clusterTransportSniffer: false
     clusterNodes: elasticsearch:9300
     indexShardsNumber: 2
     indexReplicasNumber: 0
