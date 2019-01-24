@@ -2,6 +2,7 @@ FROM hizhangsir/centos7.2-jdk1.8:1.0
 MAINTAINER zyp
 RUN mkdir -p /home/app/skywalking-collector-5.0  && mkdir -p /home/app/skywalking-collector-5.0/collector-libs && mkdir -p /home/app/skywalking-collector-5.0/config &&  mkdir -p /home/app/skywalking-collector-5.0/logs && mkdir -p /home/app/skywalking-collector-5.0/bin
 WORKDIR /home/app/skywalking-collector-5.0
+ENV LANG en_US.UTF-8
 #USER app
 ADD ./bin/collectorService.sh /home/app/skywalking-collector-5.0/bin/
 ADD ./collector-libs /home/app/skywalking-collector-5.0/collector-libs

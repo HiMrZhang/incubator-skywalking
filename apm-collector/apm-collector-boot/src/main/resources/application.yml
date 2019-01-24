@@ -70,7 +70,7 @@ ui:
     contextPath: /
 storage:
   elasticsearch:
-    clusterName: CollectorDBCluster
+    clusterName: docker-cluster
     clusterTransportSniffer: true
     clusterNodes: elasticsearch:9300
     indexShardsNumber: 2
