@@ -39,6 +39,7 @@
         <spring-cloud-dependencies.version>Edgware.SR1</spring-cloud-dependencies.version>
         <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
         <suixingpay-portal-authorization.version>1.0.0-SNAPSHOT</suixingpay-portal-authorization.version>
+        <suixingpay-config-client.version>1.1.0-SNAPSHOT</suixingpay-config-client.version>
 
         <ui.path>${project.parent.basedir}/skywalking-ui</ui.path>
     </properties>
@@ -86,10 +87,10 @@
             <artifactId>httpclient</artifactId>
             <version>${apache-httpclient.version}</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
@@ -127,6 +128,11 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-feign</artifactId>
         </dependency>
+         <dependency>
+             <groupId>com.suixingpay.config</groupId>
+             <artifactId>suixingpay-config-client</artifactId>
+             <version>${suixingpay-config-client.version}</version>
+         </dependency>
     </dependencies>
 
     <build>

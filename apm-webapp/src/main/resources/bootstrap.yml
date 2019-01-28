@@ -14,10 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 spring:
+  profiles:
+    active: dev
   application:
     name: apm-webapp
-server:
-  port: 8080
+
 zuul:
   ignoredServices: '*'
   routes:
@@ -28,27 +29,38 @@ zuul:
 collector:
   path: /graphql
   ribbon:
-    listOfServers: 127.0.0.1:12800
+    listOfServers: collector:12800
     NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
 
-
-
 eureka:
-  user:
-    name: admin
-    password: 123456
-  peer1: 127.0.0.1:8761
   instance:
-    prefer-ip-address: true #
-    instance-id: ${spring.cloud.client.ipAddress}:${server.port}
-
+    preferIpAddress: true
+    leaseRenewalIntervalInSeconds: 10
+    leaseExpirationDurationInSeconds: 20
+    instance-enabled-onit: true
+    metadata-map:
+      cluster: server
   client:
-    register-with-eureka: true # 自己注册到注册中心
-    serviceUrl:
-      defaultZone: http://${eureka.user.name}:${eureka.user.password}@${eureka.peer1}/eureka/
-
+    registerWithEureka: true
+    fetchRegistry: true
+    registry-fetch-interval-seconds: 30
+    healthcheck:
+      enabled: true
+    service-url:
+      defaultZone: http://admin:123456@127.0.0.1:8761/eureka
+    enabled: true
 
 suixingpay:
+  config:
+    profile: dev
+    uris:
+      - ${env.configServerUrl}
+    username: dev-open-user
+    password: dev.123456
   portal: # 统一门户相关配置
     exclude-path-patterns:
       - /public/**
+
+
+env:
+  configServerUrl:
