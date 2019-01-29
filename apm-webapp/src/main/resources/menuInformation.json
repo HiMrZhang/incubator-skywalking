@@ -8,35 +8,35 @@
     "children": [{
       "name": "工作台",
       "code": "SKYWALKING_MONITOR_CONSOLE",
-      "type": "2",
+      "type": "1",
       "url": "/#/monitor/dashboard",
       "sort": "1"
     },
       {
         "name": "拓扑",
         "code": "SKYWALKING_MONITOR_TOPOLOGY",
-        "type": "2",
+        "type": "1",
         "url": "/#/monitor/topology",
         "sort": "2"
       },
       {
         "name": "应用",
         "code": "SKYWALKING_MONITOR_APPLICATION",
-        "type": "2",
+        "type": "1",
         "url": "/#/monitor/application",
         "sort": "3"
       },
       {
         "name": "服务",
         "code": "SKYWALKING_MONITOR_SERVICE",
-        "type": "2",
+        "type": "1",
         "url": "/#/monitor/service",
         "sort": "4"
       },
       {
         "name": "报警",
         "code": "SKYWALKING_MONITOR_ALERT",
-        "type": "2",
+        "type": "1",
         "url": "/#/monitor/alert",
         "sort": "5"
       }
