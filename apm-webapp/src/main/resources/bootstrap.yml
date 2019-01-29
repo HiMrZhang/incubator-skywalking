@@ -24,7 +24,7 @@ zuul:
   routes:
     api:
       path: /api/**
-      serviceId: collector
+      serviceId: apm-collector
 
 collector:
   path: /graphql
