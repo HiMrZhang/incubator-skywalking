@@ -93,6 +93,9 @@ org.apache.skywalking.apm.collector.storage.es.define.alarm.ServiceAlarmListEsTa
 org.apache.skywalking.apm.collector.storage.es.define.alarm.ServiceReferenceAlarmEsTableDefine
 org.apache.skywalking.apm.collector.storage.es.define.alarm.ServiceReferenceAlarmListEsTableDefine
 
+org.apache.skywalking.apm.collector.storage.es.define.alarm.AlarmContactEsTableDefine
+org.apache.skywalking.apm.collector.storage.es.define.alarm.RApplicationAlarmContactEsTableDefine
+
 org.apache.skywalking.apm.collector.storage.es.define.mpool.MemoryPoolMinuteMetricEsTableDefine
 org.apache.skywalking.apm.collector.storage.es.define.mpool.MemoryPoolHourMetricEsTableDefine
 org.apache.skywalking.apm.collector.storage.es.define.mpool.MemoryPoolDayMetricEsTableDefine

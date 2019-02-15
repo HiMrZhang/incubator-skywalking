@@ -18,16 +18,23 @@
 
 package org.apache.skywalking.apm.collector.ui.query;
 
-import java.text.ParseException;
-import java.util.List;
 import org.apache.skywalking.apm.collector.core.module.ModuleManager;
 import org.apache.skywalking.apm.collector.storage.ui.application.Application;
-import org.apache.skywalking.apm.collector.storage.ui.common.*;
+import org.apache.skywalking.apm.collector.storage.ui.application.ApplicationList;
+import org.apache.skywalking.apm.collector.storage.ui.common.Duration;
+import org.apache.skywalking.apm.collector.storage.ui.common.Pagination;
+import org.apache.skywalking.apm.collector.storage.ui.common.Topology;
 import org.apache.skywalking.apm.collector.storage.ui.server.AppServerInfo;
 import org.apache.skywalking.apm.collector.storage.ui.service.ServiceMetric;
 import org.apache.skywalking.apm.collector.ui.graphql.Query;
-import org.apache.skywalking.apm.collector.ui.service.*;
+import org.apache.skywalking.apm.collector.ui.service.ApplicationService;
+import org.apache.skywalking.apm.collector.ui.service.ApplicationTopologyService;
+import org.apache.skywalking.apm.collector.ui.service.ServerService;
 import org.apache.skywalking.apm.collector.ui.utils.DurationUtils;
+import org.apache.skywalking.apm.collector.ui.utils.PaginationUtils;
+
+import java.text.ParseException;
+import java.util.List;
 
 import static java.util.Objects.isNull;
 
@@ -84,7 +91,7 @@ public class ApplicationQuery implements Query {
     }
 
     public List<ServiceMetric> getSlowService(int applicationId, Duration duration,
-        Integer topN) {
+                                              Integer topN) {
         long startTimeBucket = DurationUtils.INSTANCE.exchangeToTimeBucket(duration.getStart());
         long endTimeBucket = DurationUtils.INSTANCE.exchangeToTimeBucket(duration.getEnd());
 
@@ -95,7 +102,7 @@ public class ApplicationQuery implements Query {
     }
 
     public List<AppServerInfo> getServerThroughput(int applicationId, Duration duration,
-        Integer topN) throws ParseException {
+                                                   Integer topN) throws ParseException {
         long startTimeBucket = DurationUtils.INSTANCE.exchangeToTimeBucket(duration.getStart());
         long endTimeBucket = DurationUtils.INSTANCE.exchangeToTimeBucket(duration.getEnd());
 
@@ -103,5 +110,10 @@ public class ApplicationQuery implements Query {
         long endSecondTimeBucket = DurationUtils.INSTANCE.endTimeDurationToSecondTimeBucket(duration.getStep(), duration.getEnd());
 
         return getServerService().getServerThroughput(applicationId, duration.getStep(), startTimeBucket, endTimeBucket, startSecondTimeBucket, endSecondTimeBucket, topN);
+    }
+
+    public ApplicationList getApplication(String applicationCode, Pagination paging) {
+        PaginationUtils.Page page = PaginationUtils.INSTANCE.exchange(paging);
+        return getApplicationService().getApplications(applicationCode, page.getLimit(), page.getFrom());
     }
 }

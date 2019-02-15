@@ -19,23 +19,37 @@
 package org.apache.skywalking.apm.collector.ui.jetty.handler;
 
 import com.coxautodev.graphql.tools.SchemaParser;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import graphql.*;
+import graphql.ExecutionInput;
+import graphql.ExecutionResult;
+import graphql.GraphQL;
+import graphql.GraphQLError;
 import graphql.schema.GraphQLSchema;
-import java.io.*;
-import java.util.*;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.skywalking.apm.collector.core.module.ModuleManager;
 import org.apache.skywalking.apm.collector.core.util.CollectionUtils;
 import org.apache.skywalking.apm.collector.server.jetty.JettyJsonHandler;
-import org.apache.skywalking.apm.collector.storage.ui.application.*;
+import org.apache.skywalking.apm.collector.storage.ui.application.ApplicationNode;
+import org.apache.skywalking.apm.collector.storage.ui.application.ConjecturalNode;
 import org.apache.skywalking.apm.collector.storage.ui.common.VisualUserNode;
 import org.apache.skywalking.apm.collector.storage.ui.service.ServiceNode;
-import org.apache.skywalking.apm.collector.ui.graphql.*;
+import org.apache.skywalking.apm.collector.ui.graphql.VersionMutation;
+import org.apache.skywalking.apm.collector.ui.graphql.VersionQuery;
+import org.apache.skywalking.apm.collector.ui.mutation.AlarmContactMutation;
 import org.apache.skywalking.apm.collector.ui.mutation.ConfigMutation;
 import org.apache.skywalking.apm.collector.ui.query.*;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author peng-yongsheng
@@ -64,7 +78,7 @@ public class GraphQLHandler extends JettyJsonHandler {
             .file("ui-graphql/trace.graphqls")
             .resolvers(new VersionQuery(), new VersionMutation(), new AlarmQuery(moduleManager), new ApplicationQuery(moduleManager))
             .resolvers(new OverViewLayerQuery(moduleManager), new ServerQuery(moduleManager), new ServiceQuery(moduleManager), new TraceQuery(moduleManager))
-            .resolvers(new ConfigQuery(), new ConfigMutation())
+            .resolvers(new ConfigQuery(), new ConfigMutation(),new AlarmContactMutation(moduleManager))
             .dictionary(ConjecturalNode.class, VisualUserNode.class, ApplicationNode.class, ServiceNode.class)
             .build()
             .makeExecutableSchema();

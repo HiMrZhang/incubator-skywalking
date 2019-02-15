@@ -18,18 +18,20 @@
 
 package org.apache.skywalking.apm.collector.client.elasticsearch;
 
-import java.net.*;
-import java.util.*;
-import java.util.function.Consumer;
-import org.apache.skywalking.apm.collector.client.*;
+import org.apache.skywalking.apm.collector.client.Client;
+import org.apache.skywalking.apm.collector.client.ClientException;
+import org.apache.skywalking.apm.collector.client.NameSpace;
 import org.apache.skywalking.apm.collector.core.data.CommonTable;
-import org.apache.skywalking.apm.collector.core.util.*;
+import org.apache.skywalking.apm.collector.core.util.Const;
+import org.apache.skywalking.apm.collector.core.util.StringUtils;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetFieldMappingsResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.get.*;
+import org.elasticsearch.action.delete.DeleteRequestBuilder;
+import org.elasticsearch.action.get.GetRequestBuilder;
+import org.elasticsearch.action.get.MultiGetRequestBuilder;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
@@ -39,9 +41,17 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.reindex.*;
+import org.elasticsearch.index.reindex.DeleteByQueryAction;
+import org.elasticsearch.index.reindex.DeleteByQueryRequestBuilder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author peng-yongsheng
@@ -61,7 +71,7 @@ public class ElasticSearchClient implements Client {
     private final NameSpace namespace;
 
     public ElasticSearchClient(String clusterName, boolean clusterTransportSniffer,
-        String clusterNodes) {
+                               String clusterNodes) {
         this.clusterName = clusterName;
         this.clusterTransportSniffer = clusterTransportSniffer;
         this.clusterNodes = clusterNodes;
@@ -69,7 +79,7 @@ public class ElasticSearchClient implements Client {
     }
 
     public ElasticSearchClient(String clusterName, boolean clusterTransportSniffer,
-        String clusterNodes, NameSpace namespace) {
+                               String clusterNodes, NameSpace namespace) {
         this.clusterName = clusterName;
         this.clusterTransportSniffer = clusterTransportSniffer;
         this.clusterNodes = clusterNodes;
@@ -79,16 +89,16 @@ public class ElasticSearchClient implements Client {
     @Override
     public void initialize() throws ClientException {
         Settings settings = Settings.builder()
-            .put("cluster.name", clusterName)
-            .put("client.transport.sniff", clusterTransportSniffer)
-            .build();
+                .put("cluster.name", clusterName)
+                .put("client.transport.sniff", clusterTransportSniffer)
+                .build();
 
         client = new PreBuiltTransportClient(settings);
 
         List<AddressPairs> pairsList = parseClusterNodes(clusterNodes);
         for (AddressPairs pairs : pairsList) {
             try {
-                ((PreBuiltTransportClient)client).addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(pairs.host), pairs.port));
+                ((PreBuiltTransportClient) client).addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(pairs.host), pairs.port));
             } catch (UnknownHostException e) {
                 throw new ElasticSearchClientException(e.getMessage(), e);
             }
@@ -175,6 +185,11 @@ public class ElasticSearchClient implements Client {
     public DeleteByQueryRequestBuilder prepareDelete(QueryBuilder queryBuilder, String indexName) {
         indexName = formatIndexName(indexName);
         return DeleteByQueryAction.INSTANCE.newRequestBuilder(client).filter(queryBuilder).source(indexName);
+    }
+
+    public DeleteRequestBuilder prepareDelete(String indexName, String id) {
+        indexName = formatIndexName(indexName);
+        return client.prepareDelete(indexName, CommonTable.TABLE_TYPE, id);
     }
 
     public MultiGetRequestBuilder prepareMultiGet(List<?> rows, MultiGetRowHandler rowHandler) {

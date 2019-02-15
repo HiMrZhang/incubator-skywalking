@@ -18,9 +18,15 @@
 
 package org.apache.skywalking.apm.collector.configuration;
 
+import org.apache.skywalking.apm.collector.client.email.EmailClient;
+import org.apache.skywalking.apm.collector.client.email.IEmailClient;
 import org.apache.skywalking.apm.collector.configuration.service.*;
-import org.apache.skywalking.apm.collector.core.module.*;
-import org.apache.skywalking.apm.collector.core.util.*;
+import org.apache.skywalking.apm.collector.core.module.ModuleConfig;
+import org.apache.skywalking.apm.collector.core.module.ModuleDefine;
+import org.apache.skywalking.apm.collector.core.module.ModuleProvider;
+import org.apache.skywalking.apm.collector.core.module.ServiceNotProvidedException;
+import org.apache.skywalking.apm.collector.core.util.Const;
+import org.apache.skywalking.apm.collector.core.util.StringUtils;
 
 /**
  * @author peng-yongsheng
@@ -34,19 +40,23 @@ public class ConfigurationModuleProvider extends ModuleProvider {
         this.config = new ConfigurationModuleConfig();
     }
 
-    @Override public String name() {
+    @Override
+    public String name() {
         return "default";
     }
 
-    @Override public Class<? extends ModuleDefine> module() {
+    @Override
+    public Class<? extends ModuleDefine> module() {
         return ConfigurationModule.class;
     }
 
-    @Override public ModuleConfig createConfigBeanIfAbsent() {
+    @Override
+    public ModuleConfig createConfigBeanIfAbsent() {
         return config;
     }
 
-    @Override public void prepare() throws ServiceNotProvidedException {
+    @Override
+    public void prepare() throws ServiceNotProvidedException {
         String namespace = StringUtils.isNotEmpty(config.getNamespace()) ? config.getNamespace() : Const.EMPTY_STRING;
         int applicationApdexThreshold = config.getApplicationApdexThreshold() == 0 ? 2000 : config.getApplicationApdexThreshold();
         double serviceErrorRateThreshold = config.getServiceErrorRateThreshold() == 0 ? 0.10 : config.getServiceErrorRateThreshold() / 100;
@@ -61,6 +71,20 @@ public class ConfigurationModuleProvider extends ModuleProvider {
 
         int workerCacheMaxSize = config.getWorkerCacheMaxSize() == 0 ? 10000 : config.getWorkerCacheMaxSize();
 
+        Boolean emailAlarmEnable = config.getEmailAlarmEnable();
+        if (emailAlarmEnable) {
+            String emailHost = StringUtils.isNotEmpty(config.getEmailHost()) ? config.getEmailHost() : Const.EMPTY_STRING;
+            String emailUsername = StringUtils.isNotEmpty(config.getEmailUsername()) ? config.getEmailUsername() : Const.EMPTY_STRING;
+            String emailPassword = StringUtils.isNotEmpty(config.getEmailPassword()) ? config.getEmailPassword() : Const.EMPTY_STRING;
+            Boolean emailSslEnable = config.getEmailSslEnable();
+            Boolean emailAuth = config.getEmailAuth();
+            Boolean emailStarttlsEnable = config.getEmailStarttlsEnable();
+            Boolean emailStarttlsRequired = config.getEmailStarttlsRequired();
+            EmailClient emailClient = new EmailClient(emailHost, emailUsername, emailPassword, emailSslEnable, emailAuth, emailStarttlsEnable, emailStarttlsRequired);
+            emailClient.initialize();
+            this.registerServiceImplementation(IEmailClient.class, emailClient);
+
+        }
         this.registerServiceImplementation(ICollectorConfig.class, new CollectorConfigService(namespace));
         this.registerServiceImplementation(IComponentLibraryCatalogService.class, new ComponentLibraryCatalogService());
         this.registerServiceImplementation(IApdexThresholdService.class, new ApdexThresholdService(applicationApdexThreshold));
@@ -74,13 +98,16 @@ public class ConfigurationModuleProvider extends ModuleProvider {
         this.registerServiceImplementation(IWorkerCacheSizeConfig.class, new WorkerCacheSizeConfigService(workerCacheMaxSize));
     }
 
-    @Override public void start() {
+    @Override
+    public void start() {
     }
 
-    @Override public void notifyAfterCompleted() {
+    @Override
+    public void notifyAfterCompleted() {
     }
 
-    @Override public String[] requiredModules() {
+    @Override
+    public String[] requiredModules() {
         return new String[0];
     }
 }

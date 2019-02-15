@@ -36,6 +36,14 @@ class ConfigurationModuleConfig extends ModuleConfig {
     private int thermodynamicResponseTimeStep;
     private int thermodynamicCountOfResponseTimeSteps;
     private int workerCacheMaxSize;
+    private Boolean emailAlarmEnable = false;
+    private String emailHost;
+    private String emailUsername;
+    private String emailPassword;
+    private Boolean emailSslEnable = false;
+    private Boolean emailAuth = true;
+    private Boolean emailStarttlsEnable = true;
+    private Boolean emailStarttlsRequired = false;
 
     public String getNamespace() {
         return namespace;
@@ -123,5 +131,69 @@ class ConfigurationModuleConfig extends ModuleConfig {
 
     public void setWorkerCacheMaxSize(int workerCacheMaxSize) {
         this.workerCacheMaxSize = workerCacheMaxSize;
+    }
+
+    public Boolean getEmailAlarmEnable() {
+        return emailAlarmEnable;
+    }
+
+    public void setEmailAlarmEnable(Boolean emailAlarmEnable) {
+        this.emailAlarmEnable = emailAlarmEnable;
+    }
+
+    public String getEmailHost() {
+        return emailHost;
+    }
+
+    public void setEmailHost(String emailHost) {
+        this.emailHost = emailHost;
+    }
+
+    public String getEmailUsername() {
+        return emailUsername;
+    }
+
+    public void setEmailUsername(String emailUsername) {
+        this.emailUsername = emailUsername;
+    }
+
+    public String getEmailPassword() {
+        return emailPassword;
+    }
+
+    public void setEmailPassword(String emailPassword) {
+        this.emailPassword = emailPassword;
+    }
+
+    public Boolean getEmailSslEnable() {
+        return emailSslEnable;
+    }
+
+    public void setEmailSslEnable(Boolean emailSslEnable) {
+        this.emailSslEnable = emailSslEnable;
+    }
+
+    public Boolean getEmailAuth() {
+        return emailAuth;
+    }
+
+    public void setEmailAuth(Boolean emailAuth) {
+        this.emailAuth = emailAuth;
+    }
+
+    public Boolean getEmailStarttlsEnable() {
+        return emailStarttlsEnable;
+    }
+
+    public void setEmailStarttlsEnable(Boolean emailStarttlsEnable) {
+        this.emailStarttlsEnable = emailStarttlsEnable;
+    }
+
+    public Boolean getEmailStarttlsRequired() {
+        return emailStarttlsRequired;
+    }
+
+    public void setEmailStarttlsRequired(Boolean emailStarttlsRequired) {
+        this.emailStarttlsRequired = emailStarttlsRequired;
     }
 }

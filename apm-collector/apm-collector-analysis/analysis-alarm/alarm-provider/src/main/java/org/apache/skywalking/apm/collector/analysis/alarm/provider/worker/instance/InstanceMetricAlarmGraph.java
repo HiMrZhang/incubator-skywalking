@@ -20,6 +20,7 @@ package org.apache.skywalking.apm.collector.analysis.alarm.provider.worker.insta
 
 import org.apache.skywalking.apm.collector.analysis.alarm.define.graph.AlarmGraphIdDefine;
 import org.apache.skywalking.apm.collector.analysis.alarm.define.graph.AlarmWorkerIdDefine;
+import org.apache.skywalking.apm.collector.analysis.alarm.provider.worker.EmailAlermWorker;
 import org.apache.skywalking.apm.collector.analysis.metric.define.graph.MetricGraphIdDefine;
 import org.apache.skywalking.apm.collector.analysis.metric.define.graph.MetricWorkerIdDefine;
 import org.apache.skywalking.apm.collector.analysis.worker.model.base.WorkerCreateListener;
@@ -53,6 +54,7 @@ public class InstanceMetricAlarmGraph {
 
         graph.addNode(new InstanceMetricAlarmAssertWorker.Factory(moduleManager).create(workerCreateListener))
             .addNext(new InstanceMetricAlarmRemoteWorker.Factory(moduleManager, remoteSenderService, AlarmGraphIdDefine.INSTANCE_METRIC_ALARM_GRAPH_ID).create(workerCreateListener))
+            .addNext(new EmailAlermWorker<InstanceAlarm>(moduleManager))
             .addNext(new InstanceMetricAlarmPersistenceWorker.Factory(moduleManager).create(workerCreateListener));
 
         graph.toFinder().findNode(AlarmWorkerIdDefine.INSTANCE_METRIC_ALARM_REMOTE_WORKER_ID, InstanceAlarm.class)

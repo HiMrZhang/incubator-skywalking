@@ -18,13 +18,20 @@
 
 package org.apache.skywalking.apm.collector.ui.query;
 
-import java.text.ParseException;
 import org.apache.skywalking.apm.collector.core.module.ModuleManager;
-import org.apache.skywalking.apm.collector.storage.ui.alarm.*;
-import org.apache.skywalking.apm.collector.storage.ui.common.*;
+import org.apache.skywalking.apm.collector.storage.dao.ui.IAlarmContactUIDAO;
+import org.apache.skywalking.apm.collector.storage.ui.alarm.Alarm;
+import org.apache.skywalking.apm.collector.storage.ui.alarm.AlarmContactList;
+import org.apache.skywalking.apm.collector.storage.ui.alarm.AlarmType;
+import org.apache.skywalking.apm.collector.storage.ui.common.Duration;
+import org.apache.skywalking.apm.collector.storage.ui.common.Pagination;
 import org.apache.skywalking.apm.collector.ui.graphql.Query;
 import org.apache.skywalking.apm.collector.ui.service.AlarmService;
-import org.apache.skywalking.apm.collector.ui.utils.*;
+import org.apache.skywalking.apm.collector.ui.utils.DurationUtils;
+import org.apache.skywalking.apm.collector.ui.utils.PaginationUtils;
+
+import java.text.ParseException;
+import java.util.List;
 
 import static java.util.Objects.isNull;
 
@@ -48,7 +55,7 @@ public class AlarmQuery implements Query {
     }
 
     public Alarm loadAlarmList(String keyword, AlarmType alarmType, Duration duration,
-        Pagination paging) throws ParseException {
+                               Pagination paging) throws ParseException {
         long startTimeBucket = DurationUtils.INSTANCE.startTimeDurationToSecondTimeBucket(duration.getStep(), duration.getStart()) / 100;
         long endTimeBucket = DurationUtils.INSTANCE.endTimeDurationToSecondTimeBucket(duration.getStep(), duration.getEnd()) / 100;
 
@@ -64,5 +71,16 @@ public class AlarmQuery implements Query {
             default:
                 return new Alarm();
         }
+    }
+
+    public AlarmContactList loadAlarmContactList(String keyword, Pagination paging) throws ParseException {
+        PaginationUtils.Page page = PaginationUtils.INSTANCE.exchange(paging);
+        return getAlarmService().loadAlarmContactList(keyword, page.getLimit(), page.getFrom());
+    }
+    public List<IAlarmContactUIDAO.AlarmContact> loadAllAlarmContact() throws ParseException {
+        return getAlarmService().loadAllAlarmContact();
+    }
+    public List<IAlarmContactUIDAO.AlarmContact> loadApplicationAlarmContact(Integer applicationId) throws Exception {
+        return getAlarmService().loadApplicationAlarmContact(applicationId);
     }
 }

@@ -70,4 +70,7 @@ public class AlarmWorkerIdDefine {
     public static final int APPLICATION_METRIC_ALARM_LIST_HOUR_TRANSFORM_NODE_ID = 5055;
     public static final int APPLICATION_METRIC_ALARM_LIST_DAY_TRANSFORM_NODE_ID = 5056;
     public static final int APPLICATION_METRIC_ALARM_LIST_MONTH_TRANSFORM_NODE_ID = 5057;
+
+    public static final int EMAIL_ALREM_WORKER_ID = 5060;
+
 }

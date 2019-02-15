@@ -269,6 +269,12 @@ public class StorageModuleEsProvider extends ModuleProvider {
 
         this.registerServiceImplementation(IApplicationAlarmListUIDAO.class, new ApplicationAlarmListEsUIDAO(elasticSearchClient));
         this.registerServiceImplementation(IResponseTimeDistributionUIDAO.class, new ResponseTimeDistributionEsUIDAO(elasticSearchClient));
+
+        this.registerServiceImplementation(IAlarmContactUIDAO.class, new AlarmContactEsPersistenceDAO(elasticSearchClient));
+
+        this.registerServiceImplementation(IApplicationUIDAO.class, new ApplicationEsPersistenceDAO(elasticSearchClient));
+
+        this.registerServiceImplementation(IRApplicationAlarmContactUIDAO.class, new RApplicationAlarmContactEsPersistenceDAO(elasticSearchClient));
     }
 
     private void registerAlarmDAO() throws ServiceNotProvidedException {

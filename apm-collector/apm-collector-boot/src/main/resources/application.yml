@@ -107,6 +107,12 @@ configuration:
     thermodynamicCountOfResponseTimeSteps: 40
     # max collection's size of worker cache collection, setting it smaller when collector OutOfMemory crashed.
     workerCacheMaxSize: 10000
+    #email
+    emailAlarmEnable: true
+    emailHost: smtp.163.com
+    emailUsername: 18515215111@163.com
+    emailPassword: Zyp123456
+    emailSslEnable: true
 #receiver_zipkin:
 #  default:
 #    host: localhost

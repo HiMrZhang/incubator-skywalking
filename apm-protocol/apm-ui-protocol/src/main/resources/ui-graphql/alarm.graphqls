@@ -31,6 +31,22 @@ type AlarmItem {
     causeType: CauseType!
 }
 
+type AlarmContact {
+    id: String
+    status: Int
+    createTime: Long
+    updateTime: Long
+    phoneNumber: String
+    email: String
+    realName: String
+}
+
+type AlarmContactList {
+    items: [AlarmContact!]!
+    total: Int!
+}
+
+
 enum AlarmType {
     APPLICATION,
     SERVER,
@@ -42,6 +58,16 @@ enum CauseType {
     SLOW_RESPONSE
 }
 
+extend type Mutation {
+    addAlarmContact(email: String!,phoneNumber: String!,realName: String!): Response!
+    editAlarmContact(id: String!,email: String,phoneNumber: String,realName: String): Response!
+    setApplicationAlarmContact(alarmContactIds: [Int!]!,applicationId: Int!): Response!
+    deleteAlarmContact(alarmContactId: Int!): Response!
+}
+
 extend type Query {
     loadAlarmList(keyword: String, alarmType: AlarmType, duration:Duration!, paging: Pagination!): Alarm
+    loadAlarmContactList(keyword: String, paging: Pagination!): AlarmContactList
+    loadApplicationAlarmContact(applicationId: Int!): [AlarmContact!]!
+    loadAllAlarmContact: [AlarmContact!]!
 }

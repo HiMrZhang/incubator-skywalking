@@ -111,9 +111,9 @@ public abstract class ModuleProvider {
             }
         }
 
-        if (requiredServices.length != services.size()) {
+        /*if (requiredServices.length != services.size()) {
             throw new ServiceNotProvidedException("The " + this.name() + " provider in " + module.name() + " module provide more service implementations than ModuleDefine requirements.");
-        }
+        }*/
     }
 
     @SuppressWarnings("unchecked") <T extends Service> T getService(

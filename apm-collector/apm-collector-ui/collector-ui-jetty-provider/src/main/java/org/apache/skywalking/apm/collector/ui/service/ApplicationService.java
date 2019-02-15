@@ -18,10 +18,9 @@
 
 package org.apache.skywalking.apm.collector.ui.service;
 
-import java.text.ParseException;
-import java.util.List;
 import org.apache.skywalking.apm.collector.cache.CacheModule;
-import org.apache.skywalking.apm.collector.cache.service.*;
+import org.apache.skywalking.apm.collector.cache.service.ApplicationCacheService;
+import org.apache.skywalking.apm.collector.cache.service.ServiceNameCacheService;
 import org.apache.skywalking.apm.collector.configuration.ConfigurationModule;
 import org.apache.skywalking.apm.collector.configuration.service.IComponentLibraryCatalogService;
 import org.apache.skywalking.apm.collector.core.module.ModuleManager;
@@ -31,11 +30,18 @@ import org.apache.skywalking.apm.collector.storage.dao.ui.*;
 import org.apache.skywalking.apm.collector.storage.table.MetricSource;
 import org.apache.skywalking.apm.collector.storage.table.register.ServiceName;
 import org.apache.skywalking.apm.collector.storage.ui.application.Application;
+import org.apache.skywalking.apm.collector.storage.ui.application.ApplicationList;
 import org.apache.skywalking.apm.collector.storage.ui.common.Step;
-import org.apache.skywalking.apm.collector.storage.ui.overview.*;
+import org.apache.skywalking.apm.collector.storage.ui.overview.ApplicationThroughput;
+import org.apache.skywalking.apm.collector.storage.ui.overview.ConjecturalApp;
+import org.apache.skywalking.apm.collector.storage.ui.overview.ConjecturalAppBrief;
 import org.apache.skywalking.apm.collector.storage.ui.service.ServiceMetric;
 import org.apache.skywalking.apm.collector.ui.utils.DurationUtils;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.ParseException;
+import java.util.List;
 
 /**
  * @author peng-yongsheng
@@ -52,6 +58,7 @@ public class ApplicationService {
     private final ServiceNameCacheService serviceNameCacheService;
     private final DateBetweenService dateBetweenService;
     private final IComponentLibraryCatalogService componentLibraryCatalogService;
+    private final IApplicationUIDAO applicationUIDAO;
 
     public ApplicationService(ModuleManager moduleManager) {
         this.instanceDAO = moduleManager.find(StorageModule.NAME).getService(IInstanceUIDAO.class);
@@ -62,10 +69,11 @@ public class ApplicationService {
         this.serviceNameCacheService = moduleManager.find(CacheModule.NAME).getService(ServiceNameCacheService.class);
         this.componentLibraryCatalogService = moduleManager.find(ConfigurationModule.NAME).getService(IComponentLibraryCatalogService.class);
         this.dateBetweenService = new DateBetweenService(moduleManager);
+        this.applicationUIDAO = moduleManager.find(StorageModule.NAME).getService(IApplicationUIDAO.class);
     }
 
     public List<Application> getApplications(long startSecondTimeBucket, long endSecondTimeBucket,
-        int... applicationIds) {
+                                             int... applicationIds) {
         List<Application> applications = instanceDAO.getApplications(startSecondTimeBucket, endSecondTimeBucket, applicationIds);
 
         for (int i = applications.size() - 1; i >= 0; i--) {
@@ -83,13 +91,13 @@ public class ApplicationService {
     }
 
     public List<ServiceMetric> getSlowService(int applicationId, Step step, long startTimeBucket, long endTimeBucket,
-        long startSecondTimeBucket, long endSecondTimeBucket, Integer topN) {
+                                              long startSecondTimeBucket, long endSecondTimeBucket, Integer topN) {
         List<ServiceMetric> slowServices = serviceMetricUIDAO.getSlowService(applicationId, step, startTimeBucket, endTimeBucket, topN, MetricSource.Callee);
         slowServices.forEach(slowService -> {
             ServiceName serviceName = serviceNameCacheService.get(slowService.getService().getId());
 
             try {
-                slowService.setCpm((int)(slowService.getCalls() / dateBetweenService.minutesBetween(serviceName.getApplicationId(), startSecondTimeBucket, endSecondTimeBucket)));
+                slowService.setCpm((int) (slowService.getCalls() / dateBetweenService.minutesBetween(serviceName.getApplicationId(), startSecondTimeBucket, endSecondTimeBucket)));
             } catch (ParseException e) {
                 logger.error(e.getMessage(), e);
             }
@@ -101,7 +109,7 @@ public class ApplicationService {
     }
 
     public List<ApplicationThroughput> getTopNApplicationThroughput(Step step, long startTimeBucket, long endTimeBucket,
-        int topN) throws ParseException {
+                                                                    int topN) throws ParseException {
         int minutesBetween = DurationUtils.INSTANCE.minutesBetween(step, startTimeBucket, endTimeBucket);
         List<ApplicationThroughput> applicationThroughputList = applicationMetricUIDAO.getTopNApplicationThroughput(step, startTimeBucket, endTimeBucket, minutesBetween, topN, MetricSource.Callee);
         applicationThroughputList.forEach(applicationThroughput -> {
@@ -112,7 +120,7 @@ public class ApplicationService {
     }
 
     public ConjecturalAppBrief getConjecturalApps(Step step, long startSecondTimeBucket,
-        long endSecondTimeBucket) {
+                                                  long endSecondTimeBucket) {
         List<ConjecturalApp> conjecturalApps = networkAddressUIDAO.getConjecturalApps();
         conjecturalApps.forEach(conjecturalApp -> {
             String serverType = componentLibraryCatalogService.getServerName(conjecturalApp.getId());
@@ -124,4 +132,7 @@ public class ApplicationService {
         return conjecturalAppBrief;
     }
 
+    public ApplicationList getApplications(String applicationCode, int limit, int from) {
+        return applicationUIDAO.getApplications(applicationCode, limit, from);
+    }
 }

@@ -47,11 +47,13 @@ public class ServiceMetricAlarmAssertWorker extends AlarmAssertWorker<ServiceMet
         this.serviceAlarmRuleConfig = moduleManager.find(ConfigurationModule.NAME).getService(IServiceAlarmRuleConfig.class);
     }
 
-    @Override public int id() {
+    @Override
+    public int id() {
         return AlarmWorkerIdDefine.SERVICE_METRIC_ALARM_ASSERT_WORKER_ID;
     }
 
-    @Override protected ServiceAlarm newAlarmObject(String id, ServiceMetric inputMetric) {
+    @Override
+    protected ServiceAlarm newAlarmObject(String id, ServiceMetric inputMetric) {
         ServiceAlarm serviceAlarm = new ServiceAlarm();
         serviceAlarm.setId(id + Const.ID_SPLIT + inputMetric.getServiceId());
         serviceAlarm.setApplicationId(inputMetric.getApplicationId());
@@ -60,34 +62,39 @@ public class ServiceMetricAlarmAssertWorker extends AlarmAssertWorker<ServiceMet
         return serviceAlarm;
     }
 
-    @Override protected void generateAlarmContent(ServiceAlarm alarm, double threshold) {
+    @Override
+    protected void generateAlarmContent(ServiceAlarm alarm, double threshold) {
         ServiceName serviceName = serviceNameCacheService.get(alarm.getServiceId());
 
-        String clientOrServer = "server";
+        String clientOrServer = "服务端";
         if (MetricSource.Caller.getValue() == alarm.getSourceValue()) {
-            clientOrServer = "client";
+            clientOrServer = "客户端";
         }
 
         if (AlarmType.ERROR_RATE.getValue() == alarm.getAlarmType()) {
-            alarm.setAlarmContent("The success rate of " + serviceName.getServiceName() + ", detected from " + clientOrServer + " side, is lower than " + threshold + " rate.");
+            alarm.setAlarmContent(clientOrServer + "检测到服务[" + serviceName.getServiceName() + "]的成功率低于" + threshold);
         } else if (AlarmType.SLOW_RTT.getValue() == alarm.getAlarmType()) {
-            alarm.setAlarmContent("Response time of " + serviceName.getServiceName() + ", detected from " + clientOrServer + " side, is slower than " + threshold + " ms.");
+            alarm.setAlarmContent(clientOrServer + "检测到服务[" + serviceName.getServiceName() + "]的响应时间慢于" + threshold + " ms.");
         }
     }
 
-    @Override protected Double calleeErrorRateThreshold() {
+    @Override
+    protected Double calleeErrorRateThreshold() {
         return serviceAlarmRuleConfig.calleeErrorRateThreshold();
     }
 
-    @Override protected Double callerErrorRateThreshold() {
+    @Override
+    protected Double callerErrorRateThreshold() {
         return serviceAlarmRuleConfig.callerErrorRateThreshold();
     }
 
-    @Override protected Double calleeAverageResponseTimeThreshold() {
+    @Override
+    protected Double calleeAverageResponseTimeThreshold() {
         return serviceAlarmRuleConfig.calleeAverageResponseTimeThreshold();
     }
 
-    @Override protected Double callerAverageResponseTimeThreshold() {
+    @Override
+    protected Double callerAverageResponseTimeThreshold() {
         return serviceAlarmRuleConfig.callerAverageResponseTimeThreshold();
     }
 
@@ -97,7 +104,8 @@ public class ServiceMetricAlarmAssertWorker extends AlarmAssertWorker<ServiceMet
             super(moduleManager);
         }
 
-        @Override public ServiceMetricAlarmAssertWorker workerInstance(ModuleManager moduleManager) {
+        @Override
+        public ServiceMetricAlarmAssertWorker workerInstance(ModuleManager moduleManager) {
             return new ServiceMetricAlarmAssertWorker(moduleManager);
         }
 

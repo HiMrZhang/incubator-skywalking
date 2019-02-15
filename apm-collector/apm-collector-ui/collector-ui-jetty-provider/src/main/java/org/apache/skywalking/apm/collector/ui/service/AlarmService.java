@@ -18,23 +18,29 @@
 
 package org.apache.skywalking.apm.collector.ui.service;
 
-import com.google.gson.*;
-import java.text.ParseException;
-import java.util.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.apache.skywalking.apm.collector.cache.CacheModule;
-import org.apache.skywalking.apm.collector.cache.service.*;
+import org.apache.skywalking.apm.collector.cache.service.ApplicationCacheService;
+import org.apache.skywalking.apm.collector.cache.service.ServiceNameCacheService;
 import org.apache.skywalking.apm.collector.core.module.ModuleManager;
 import org.apache.skywalking.apm.collector.core.util.Const;
 import org.apache.skywalking.apm.collector.storage.StorageModule;
 import org.apache.skywalking.apm.collector.storage.dao.ui.*;
-import org.apache.skywalking.apm.collector.storage.table.register.*;
+import org.apache.skywalking.apm.collector.storage.table.register.Instance;
+import org.apache.skywalking.apm.collector.storage.table.register.ServiceName;
 import org.apache.skywalking.apm.collector.storage.ui.alarm.Alarm;
+import org.apache.skywalking.apm.collector.storage.ui.alarm.AlarmContactList;
 import org.apache.skywalking.apm.collector.storage.ui.application.Application;
 import org.apache.skywalking.apm.collector.storage.ui.common.Step;
 import org.apache.skywalking.apm.collector.storage.ui.overview.AlarmTrend;
 import org.apache.skywalking.apm.collector.storage.utils.DurationPoint;
 import org.apache.skywalking.apm.collector.ui.utils.DurationUtils;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.ParseException;
+import java.util.*;
 
 /**
  * @author peng-yongsheng
@@ -52,8 +58,10 @@ public class AlarmService {
     private final IApplicationAlarmListUIDAO applicationAlarmListUIDAO;
     private final ApplicationCacheService applicationCacheService;
     private final ServiceNameCacheService serviceNameCacheService;
-    private static final String RESPONSE_TIME_ALARM = " response time alarm.";
-    private static final String SUCCESS_RATE_ALARM = " success rate alarm.";
+    private final IAlarmContactUIDAO alarmContactUIDAO;
+    private final IRApplicationAlarmContactUIDAO rApplicationAlarmContactUIDAO;
+    private static final String RESPONSE_TIME_ALARM = " 响应时间报警.";
+    private static final String SUCCESS_RATE_ALARM = " 成功率报警.";
 
     public AlarmService(ModuleManager moduleManager) {
         this.instanceDAO = moduleManager.find(StorageModule.NAME).getService(IInstanceUIDAO.class);
@@ -64,10 +72,12 @@ public class AlarmService {
         this.applicationAlarmListUIDAO = moduleManager.find(StorageModule.NAME).getService(IApplicationAlarmListUIDAO.class);
         this.applicationCacheService = moduleManager.find(CacheModule.NAME).getService(ApplicationCacheService.class);
         this.serviceNameCacheService = moduleManager.find(CacheModule.NAME).getService(ServiceNameCacheService.class);
+        this.alarmContactUIDAO = moduleManager.find(StorageModule.NAME).getService(IAlarmContactUIDAO.class);
+        this.rApplicationAlarmContactUIDAO = moduleManager.find(StorageModule.NAME).getService(IRApplicationAlarmContactUIDAO.class);
     }
 
     public Alarm loadApplicationAlarmList(String keyword, int applicationId, Step step, long startTimeBucket,
-        long endTimeBucket, int limit, int from) throws ParseException {
+                                          long endTimeBucket, int limit, int from) throws ParseException {
         logger.debug("keyword: {}, startTimeBucket: {}, endTimeBucket: {}, limit: {}, from: {}", keyword, startTimeBucket, endTimeBucket, limit, from);
         List<IApplicationMappingUIDAO.ApplicationMapping> applicationMappings = applicationMappingUIDAO.load(step, startTimeBucket, endTimeBucket);
         Map<Integer, Integer> mappings = new HashMap<>();
@@ -89,10 +99,10 @@ public class AlarmService {
             String applicationCode = applicationCacheService.getApplicationById(mappings.getOrDefault(item.getId(), item.getId())).getApplicationCode();
             switch (item.getCauseType()) {
                 case SLOW_RESPONSE:
-                    item.setTitle("Application " + applicationCode + RESPONSE_TIME_ALARM);
+                    item.setTitle("应用[" + applicationCode + "]" + RESPONSE_TIME_ALARM);
                     break;
                 case LOW_SUCCESS_RATE:
-                    item.setTitle("Application " + applicationCode + SUCCESS_RATE_ALARM);
+                    item.setTitle("应用[" + applicationCode + "]" + SUCCESS_RATE_ALARM);
                     break;
             }
         });
@@ -100,7 +110,7 @@ public class AlarmService {
     }
 
     public Alarm loadInstanceAlarmList(String keyword, Step step, long startTimeBucket, long endTimeBucket,
-        int limit, int from) throws ParseException {
+                                       int limit, int from) throws ParseException {
         logger.debug("keyword: {}, startTimeBucket: {}, endTimeBucket: {}, limit: {}, from: {}", keyword, startTimeBucket, endTimeBucket, limit, from);
         Alarm alarm = instanceAlarmUIDAO.loadAlarmList(keyword, startTimeBucket, endTimeBucket, limit, from);
 
@@ -114,10 +124,10 @@ public class AlarmService {
             String serverName = buildServerName(instance.getOsInfo());
             switch (item.getCauseType()) {
                 case SLOW_RESPONSE:
-                    item.setTitle("Server " + serverName + " of Application " + applicationCode + RESPONSE_TIME_ALARM);
+                    item.setTitle("应用[" + applicationCode + "]主机[ " + serverName + "]" + RESPONSE_TIME_ALARM);
                     break;
                 case LOW_SUCCESS_RATE:
-                    item.setTitle("Server " + serverName + " of Application  " + applicationCode + SUCCESS_RATE_ALARM);
+                    item.setTitle("应用[" + applicationCode + "]主机[ " + serverName + "]" + SUCCESS_RATE_ALARM);
                     break;
             }
         });
@@ -126,7 +136,7 @@ public class AlarmService {
     }
 
     public Alarm loadServiceAlarmList(String keyword, Step step, long startTimeBucket, long endTimeBucket,
-        int limit, int from) throws ParseException {
+                                      int limit, int from) throws ParseException {
         logger.debug("keyword: {}, startTimeBucket: {}, endTimeBucket: {}, limit: {}, from: {}", keyword, startTimeBucket, endTimeBucket, limit, from);
         Alarm alarm = serviceAlarmUIDAO.loadAlarmList(keyword, startTimeBucket, endTimeBucket, limit, from);
 
@@ -139,10 +149,10 @@ public class AlarmService {
             String applicationCode = applicationCacheService.getApplicationById(mappings.getOrDefault(serviceName.getApplicationId(), serviceName.getApplicationId())).getApplicationCode();
             switch (item.getCauseType()) {
                 case SLOW_RESPONSE:
-                    item.setTitle("Service " + serviceName.getServiceName() + " of Application " + applicationCode + RESPONSE_TIME_ALARM);
+                    item.setTitle("应用[" + applicationCode + "]服务[ " + serviceName.getServiceName() + "]" + RESPONSE_TIME_ALARM);
                     break;
                 case LOW_SUCCESS_RATE:
-                    item.setTitle("Service " + serviceName.getServiceName() + " of Application  " + applicationCode + SUCCESS_RATE_ALARM);
+                    item.setTitle("应用[" + applicationCode + "]服务[ " + serviceName.getServiceName() + "]" + SUCCESS_RATE_ALARM);
                     break;
             }
         });
@@ -150,8 +160,8 @@ public class AlarmService {
     }
 
     public AlarmTrend getApplicationAlarmTrend(Step step, long startTimeBucket, long endTimeBucket,
-        long startSecondTimeBucket,
-        long endSecondTimeBucket) throws ParseException {
+                                               long startSecondTimeBucket,
+                                               long endSecondTimeBucket) throws ParseException {
         List<Application> applications = instanceDAO.getApplications(startSecondTimeBucket, endSecondTimeBucket);
 
         List<DurationPoint> durationPoints = DurationUtils.INSTANCE.getDurationPoints(step, startTimeBucket, endTimeBucket);
@@ -179,5 +189,25 @@ public class AlarmService {
             serverName = osInfo.get("hostName").getAsString();
         }
         return serverName;
+    }
+
+    public AlarmContactList loadAlarmContactList(String keyword, int limit, int from) {
+        return alarmContactUIDAO.loadAlarmContactList(keyword, limit, from);
+    }
+
+    public List<IAlarmContactUIDAO.AlarmContact> loadAllAlarmContact() {
+        return alarmContactUIDAO.loadAllAlarmContact();
+    }
+
+    public List<IAlarmContactUIDAO.AlarmContact> loadApplicationAlarmContact(Integer applicationId) throws Exception {
+        List<IAlarmContactUIDAO.AlarmContact> alarmContacts = new ArrayList<IAlarmContactUIDAO.AlarmContact>();
+        List<IRApplicationAlarmContactUIDAO.RApplicationAlarmContact> rApplicationAlarmContacts = rApplicationAlarmContactUIDAO.getByApplicationId(applicationId);
+        for (IRApplicationAlarmContactUIDAO.RApplicationAlarmContact rApplicationAlarmContact : rApplicationAlarmContacts) {
+            IAlarmContactUIDAO.AlarmContact alarmContact = alarmContactUIDAO.get(rApplicationAlarmContact.getAlarmContactId().toString());
+            if (alarmContact != null) {
+                alarmContacts.add(alarmContact);
+            }
+        }
+        return alarmContacts;
     }
 }

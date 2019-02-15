@@ -20,6 +20,7 @@ package org.apache.skywalking.apm.collector.analysis.alarm.provider.worker.servi
 
 import org.apache.skywalking.apm.collector.analysis.alarm.define.graph.AlarmGraphIdDefine;
 import org.apache.skywalking.apm.collector.analysis.alarm.define.graph.AlarmWorkerIdDefine;
+import org.apache.skywalking.apm.collector.analysis.alarm.provider.worker.EmailAlermWorker;
 import org.apache.skywalking.apm.collector.analysis.metric.define.graph.MetricGraphIdDefine;
 import org.apache.skywalking.apm.collector.analysis.metric.define.graph.MetricWorkerIdDefine;
 import org.apache.skywalking.apm.collector.analysis.worker.model.base.WorkerCreateListener;
@@ -53,6 +54,7 @@ public class ServiceMetricAlarmGraph {
 
         graph.addNode(new ServiceMetricAlarmAssertWorker.Factory(moduleManager).create(workerCreateListener))
             .addNext(new ServiceMetricAlarmRemoteWorker.Factory(moduleManager, remoteSenderService, AlarmGraphIdDefine.SERVICE_METRIC_ALARM_GRAPH_ID).create(workerCreateListener))
+            .addNext(new EmailAlermWorker<ServiceAlarm>(moduleManager))
             .addNext(new ServiceMetricAlarmPersistenceWorker.Factory(moduleManager).create(workerCreateListener));
 
         graph.toFinder().findNode(AlarmWorkerIdDefine.SERVICE_METRIC_ALARM_REMOTE_WORKER_ID, ServiceAlarm.class)

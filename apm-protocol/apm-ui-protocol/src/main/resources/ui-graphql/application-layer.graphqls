@@ -56,9 +56,15 @@ type Application {
     numOfServer: Int!
 }
 
+type ApplicationList {
+    items: [Application!]!
+    total: Int!
+}
+
 extend type Query {
   getAllApplication(duration: Duration!): [Application!]!
   getApplicationTopology(applicationId: ID!, duration: Duration!): Topology
   getSlowService(applicationId: ID!, duration: Duration!, topN: Int!): [ServiceMetric!]!
   getServerThroughput(applicationId: ID!, duration: Duration!, topN: Int!): [AppServerInfo!]!
+  getApplication(applicationCode: String, paging: Pagination!): ApplicationList
 }

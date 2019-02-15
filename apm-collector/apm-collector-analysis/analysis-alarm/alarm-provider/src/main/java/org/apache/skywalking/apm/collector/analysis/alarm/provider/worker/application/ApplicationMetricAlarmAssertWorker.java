@@ -47,45 +47,52 @@ public class ApplicationMetricAlarmAssertWorker extends AlarmAssertWorker<Applic
         this.applicationCacheService = moduleManager.find(CacheModule.NAME).getService(ApplicationCacheService.class);
     }
 
-    @Override public int id() {
+    @Override
+    public int id() {
         return AlarmWorkerIdDefine.APPLICATION_METRIC_ALARM_ASSERT_WORKER_ID;
     }
 
-    @Override protected ApplicationAlarm newAlarmObject(String id, ApplicationMetric inputMetric) {
+    @Override
+    protected ApplicationAlarm newAlarmObject(String id, ApplicationMetric inputMetric) {
         ApplicationAlarm applicationAlarm = new ApplicationAlarm();
         applicationAlarm.setId(id + Const.ID_SPLIT + inputMetric.getApplicationId());
         applicationAlarm.setApplicationId(inputMetric.getApplicationId());
         return applicationAlarm;
     }
 
-    @Override protected void generateAlarmContent(ApplicationAlarm alarm, double threshold) {
+    @Override
+    protected void generateAlarmContent(ApplicationAlarm alarm, double threshold) {
         Application application = applicationCacheService.getApplicationById(alarm.getApplicationId());
 
-        String clientOrServer = "server";
+        String clientOrServer = "服务端";
         if (MetricSource.Caller.getValue() == alarm.getSourceValue()) {
-            clientOrServer = "client";
+            clientOrServer = "客户端";
         }
 
         if (AlarmType.ERROR_RATE.getValue() == alarm.getAlarmType()) {
-            alarm.setAlarmContent("The success rate of " + application.getApplicationCode() + ", detected from " + clientOrServer + " side, is lower than " + threshold + " rate.");
+            alarm.setAlarmContent(clientOrServer + "检测到应用[" + application.getApplicationCode() + "]的成功率低于" + threshold);
         } else if (AlarmType.SLOW_RTT.getValue() == alarm.getAlarmType()) {
-            alarm.setAlarmContent("Response time of " + application.getApplicationCode() + ", detected from " + clientOrServer + " side, is slower than " + threshold + " ms.");
+            alarm.setAlarmContent(clientOrServer + "检测到应用[" + application.getApplicationCode() + "]的响应时间慢于" + threshold + " ms.");
         }
     }
 
-    @Override protected Double calleeErrorRateThreshold() {
+    @Override
+    protected Double calleeErrorRateThreshold() {
         return applicationAlarmRuleConfig.calleeErrorRateThreshold();
     }
 
-    @Override protected Double callerErrorRateThreshold() {
+    @Override
+    protected Double callerErrorRateThreshold() {
         return applicationAlarmRuleConfig.callerErrorRateThreshold();
     }
 
-    @Override protected Double calleeAverageResponseTimeThreshold() {
+    @Override
+    protected Double calleeAverageResponseTimeThreshold() {
         return applicationAlarmRuleConfig.calleeAverageResponseTimeThreshold();
     }
 
-    @Override protected Double callerAverageResponseTimeThreshold() {
+    @Override
+    protected Double callerAverageResponseTimeThreshold() {
         return applicationAlarmRuleConfig.callerAverageResponseTimeThreshold();
     }
 
@@ -95,7 +102,8 @@ public class ApplicationMetricAlarmAssertWorker extends AlarmAssertWorker<Applic
             super(moduleManager);
         }
 
-        @Override public ApplicationMetricAlarmAssertWorker workerInstance(ModuleManager moduleManager) {
+        @Override
+        public ApplicationMetricAlarmAssertWorker workerInstance(ModuleManager moduleManager) {
             return new ApplicationMetricAlarmAssertWorker(moduleManager);
         }
 

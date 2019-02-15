@@ -50,11 +50,13 @@ public class InstanceMetricAlarmAssertWorker extends AlarmAssertWorker<InstanceM
         this.instanceAlarmRuleConfig = moduleManager.find(ConfigurationModule.NAME).getService(IInstanceAlarmRuleConfig.class);
     }
 
-    @Override public int id() {
+    @Override
+    public int id() {
         return AlarmWorkerIdDefine.INSTANCE_METRIC_ALARM_ASSERT_WORKER_ID;
     }
 
-    @Override protected InstanceAlarm newAlarmObject(String id, InstanceMetric inputMetric) {
+    @Override
+    protected InstanceAlarm newAlarmObject(String id, InstanceMetric inputMetric) {
         InstanceAlarm instanceAlarm = new InstanceAlarm();
         instanceAlarm.setId(id + Const.ID_SPLIT + inputMetric.getInstanceId());
         instanceAlarm.setApplicationId(inputMetric.getApplicationId());
@@ -62,7 +64,8 @@ public class InstanceMetricAlarmAssertWorker extends AlarmAssertWorker<InstanceM
         return instanceAlarm;
     }
 
-    @Override protected void generateAlarmContent(InstanceAlarm alarm, double threshold) {
+    @Override
+    protected void generateAlarmContent(InstanceAlarm alarm, double threshold) {
         Instance instance = instanceDAO.getInstance(alarm.getInstanceId());
         JsonObject osInfo = gson.fromJson(instance.getOsInfo(), JsonObject.class);
         String serverName = Const.UNKNOWN;
@@ -70,31 +73,35 @@ public class InstanceMetricAlarmAssertWorker extends AlarmAssertWorker<InstanceM
             serverName = osInfo.get("hostName").getAsString();
         }
 
-        String clientOrServer = "server";
+        String clientOrServer = "服务端";
         if (MetricSource.Caller.getValue() == alarm.getSourceValue()) {
-            clientOrServer = "client";
+            clientOrServer = "客户端";
         }
 
         if (AlarmType.ERROR_RATE.getValue() == alarm.getAlarmType()) {
-            alarm.setAlarmContent("The success rate of " + serverName + ", detected from " + clientOrServer + " side, is lower than " + threshold + " rate.");
+            alarm.setAlarmContent(clientOrServer + "检测到主机[" + serverName + "]的成功率低于" + threshold);
         } else if (AlarmType.SLOW_RTT.getValue() == alarm.getAlarmType()) {
-            alarm.setAlarmContent("Response time of " + serverName + ", detected from " + clientOrServer + " side, is slower than " + threshold + " ms.");
+            alarm.setAlarmContent(clientOrServer + "检测到主机[" + serverName + "]的响应时间慢于" + threshold + " ms.");
         }
     }
 
-    @Override protected Double calleeErrorRateThreshold() {
+    @Override
+    protected Double calleeErrorRateThreshold() {
         return instanceAlarmRuleConfig.calleeErrorRateThreshold();
     }
 
-    @Override protected Double callerErrorRateThreshold() {
+    @Override
+    protected Double callerErrorRateThreshold() {
         return instanceAlarmRuleConfig.callerErrorRateThreshold();
     }
 
-    @Override protected Double calleeAverageResponseTimeThreshold() {
+    @Override
+    protected Double calleeAverageResponseTimeThreshold() {
         return instanceAlarmRuleConfig.calleeAverageResponseTimeThreshold();
     }
 
-    @Override protected Double callerAverageResponseTimeThreshold() {
+    @Override
+    protected Double callerAverageResponseTimeThreshold() {
         return instanceAlarmRuleConfig.callerAverageResponseTimeThreshold();
     }
 
@@ -104,7 +111,8 @@ public class InstanceMetricAlarmAssertWorker extends AlarmAssertWorker<InstanceM
             super(moduleManager);
         }
 
-        @Override public InstanceMetricAlarmAssertWorker workerInstance(ModuleManager moduleManager) {
+        @Override
+        public InstanceMetricAlarmAssertWorker workerInstance(ModuleManager moduleManager) {
             return new InstanceMetricAlarmAssertWorker(moduleManager);
         }
 
