@@ -17,10 +17,12 @@
  */
 package org.apache.skywalking.apm.toolkit.activation.log.logback.v1.x.mdc.automatic;
 
+import org.apache.skywalking.apm.agent.core.conf.Config;
 import org.apache.skywalking.apm.agent.core.context.ContextManager;
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.EnhancedInstance;
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.InstanceMethodsAroundInterceptor;
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.MethodInterceptResult;
+import org.slf4j.MDC;
 
 import java.lang.reflect.Method;
 
@@ -28,22 +30,23 @@ import java.lang.reflect.Method;
  * @author zhangkewei
  */
 public class PrintMDCTraceIdInterceptor implements InstanceMethodsAroundInterceptor {
-    @Override public void beforeMethod(EnhancedInstance objInst, Method method, Object[] allArguments,
-                                       Class<?>[] argumentsTypes, MethodInterceptResult result) throws Throwable {
+    @Override
+    public void beforeMethod(EnhancedInstance objInst, Method method, Object[] allArguments,
+                             Class<?>[] argumentsTypes, MethodInterceptResult result) throws Throwable {
+        String apmTraceId = ContextManager.getGlobalTraceId() + "/" + ContextManager.getParentId() + "/" + ContextManager.getCurrentId();
+        MDC.put(Config.Toolkit.LOGBACK_MDC_TRACEID, apmTraceId);
 
     }
 
-    @Override public Object afterMethod(EnhancedInstance objInst, Method method, Object[] allArguments,
-                                        Class<?>[] argumentsTypes, Object ret) throws Throwable {
-        Boolean convert4TID = (Boolean) objInst.getSkyWalkingDynamicField();
-        if (null != convert4TID && convert4TID) {
-            return ContextManager.getGlobalTraceId() + "/" + ContextManager.getParentId() + "/" + ContextManager.getCurrentId();
-        }
+    @Override
+    public Object afterMethod(EnhancedInstance objInst, Method method, Object[] allArguments,
+                              Class<?>[] argumentsTypes, Object ret) throws Throwable {
         return ret;
     }
 
-    @Override public void handleMethodException(EnhancedInstance objInst, Method method, Object[] allArguments,
-                                                Class<?>[] argumentsTypes, Throwable t) {
+    @Override
+    public void handleMethodException(EnhancedInstance objInst, Method method, Object[] allArguments,
+                                      Class<?>[] argumentsTypes, Throwable t) {
 
     }
 }

@@ -24,9 +24,9 @@ import org.apache.skywalking.apm.agent.core.plugin.interceptor.InstanceMethodsIn
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.ClassInstanceMethodsEnhancePluginDefine;
 import org.apache.skywalking.apm.agent.core.plugin.match.ClassMatch;
 
-import static net.bytebuddy.matcher.ElementMatchers.any;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.apache.skywalking.apm.agent.core.plugin.match.NameMatch.byName;
+
 /**
  * Support MDC https://logback.qos.ch/manual/mdc.html
  * @author: zhangkewei
@@ -35,19 +35,7 @@ public class MDCConverterActivation extends ClassInstanceMethodsEnhancePluginDef
 
     @Override
     protected ConstructorInterceptPoint[] getConstructorsInterceptPoints() {
-        return new ConstructorInterceptPoint[] {
-            new ConstructorInterceptPoint() {
-                @Override
-                public ElementMatcher<MethodDescription> getConstructorMatcher() {
-                    return any();
-                }
-
-                @Override
-                public String getConstructorInterceptor() {
-                    return "org.apache.skywalking.apm.toolkit.activation.log.logback.v1.x.mdc.automatic.MDCConstructorInterceptor";
-                }
-            }
-        };
+        return null;
     }
 
     @Override
@@ -56,27 +44,12 @@ public class MDCConverterActivation extends ClassInstanceMethodsEnhancePluginDef
             new InstanceMethodsInterceptPoint() {
                 @Override
                 public ElementMatcher<MethodDescription> getMethodsMatcher() {
-                    return named("convert");
+                    return named("prepareForDeferredProcessing");
                 }
 
                 @Override
                 public String getMethodsInterceptor() {
                     return "org.apache.skywalking.apm.toolkit.activation.log.logback.v1.x.mdc.automatic.PrintMDCTraceIdInterceptor";
-                }
-
-                @Override public boolean isOverrideArgs() {
-                    return false;
-                }
-            },
-            new InstanceMethodsInterceptPoint() {
-                @Override
-                public ElementMatcher<MethodDescription> getMethodsMatcher() {
-                    return named("start");
-                }
-
-                @Override
-                public String getMethodsInterceptor() {
-                    return "org.apache.skywalking.apm.toolkit.activation.log.logback.v1.x.mdc.automatic.MDCKeyInterceptor";
                 }
 
                 @Override public boolean isOverrideArgs() {
@@ -88,6 +61,6 @@ public class MDCConverterActivation extends ClassInstanceMethodsEnhancePluginDef
 
     @Override
     protected ClassMatch enhanceClass() {
-        return byName("ch.qos.logback.classic.pattern.MDCConverter");
+        return byName("ch.qos.logback.classic.spi.LoggingEvent");
     }
 }
