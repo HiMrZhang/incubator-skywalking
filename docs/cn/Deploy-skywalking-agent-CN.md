@@ -33,16 +33,16 @@
 - Linux Tomcat 7, Tomcat 8  
 修改 `tomcat/bin/catalina.sh`,在首行加入如下信息.
 ```shell
-CATALINA_OPTS="$CATALINA_OPTS -javaagent:/path/to/skywalking-agent/skywalking-agent.jar"; export CATALINA_OPTS
+CATALINA_OPTS="$CATALINA_OPTS -javaagent:/path/to/skywalking-agent/skywalking-agent.jar -Dagent.application_code=you_application_name"; export CATALINA_OPTS
 ```
 
 - Windows Tomcat 7, Tomcat 8  
 修改 `tomcat/bin/catalina.bat`,在首行加入如下信息.
 ```shell
-set "CATALINA_OPTS=-javaagent:/path/to/skywalking-agent/skywalking-agent.jar"
+set "CATALINA_OPTS=-javaagent:/path/to/skywalking-agent/skywalking-agent.jar  -Dagent.application_code=you_application_name"
 ```
 - JAR file  
 在启动你的应用程序的命令行中添加 `-javaagent` 参数. 并确保在`-jar`参数之前添加它. 例如:
  ```shell
- java -javaagent:/path/to/skywalking-agent/skywalking-agent.jar -jar yourApp.jar
+ java -javaagent:/path/to/skywalking-agent/skywalking-agent.jar  -Dagent.application_code=you_application_name -jar yourApp.jar
  ```
